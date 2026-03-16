@@ -44,9 +44,10 @@ liveRouter.get(
             await liveService.handleUpdatePresence(userId, payload);
           }
         } catch (e) {
-          if (e instanceof LiveRateLimitServiceError || e instanceof LiveValidationServiceError) {
-            ws.send(JSON.stringify({ type: "error", payload: { message: e.message }, timestamp: new Date().toISOString() }));
-          }
+          const message = e instanceof LiveRateLimitServiceError || e instanceof LiveValidationServiceError
+            ? e.message
+            : "Invalid message";
+          ws.send(JSON.stringify({ type: "error", payload: { message }, timestamp: new Date().toISOString() }));
         }
       },
       onClose() {
