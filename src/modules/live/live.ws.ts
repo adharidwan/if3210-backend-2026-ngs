@@ -9,24 +9,27 @@ export const liveRouter = new Hono();
 
 liveRouter.get(
   "/ws/live",
-  upgradeWebSocket((c) => {
+  upgradeWebSocket(async (c) => {
+    const header = c.req.header("Authorization");
+    const queryToken = c.req.query("token");
+    const rawToken = header?.startsWith("Bearer ") ? header.slice(7) : header ?? queryToken;
+
     let userId: number | null = null;
+    if (rawToken) {
+      try {
+        const payload = await verifyToken(rawToken);
+        userId = payload.sub;
+      } catch {
+      }
+    }
 
     return {
       async onOpen(_evt, ws) {
-        const header = c.req.header("Authorization") ?? c.req.query("token");
-        const token = header?.startsWith("Bearer ") ? header.slice(7) : header;
-        if (!token) {
-          ws.close(4001, "Missing authorization");
+        if (userId === null) {
+          ws.close(4001, "Unauthorized");
           return;
         }
-        try {
-          const payload = await verifyToken(token);
-          userId = payload.sub;
-          await liveService.registerConnection(userId, ws);
-        } catch {
-          ws.close(4001, "Invalid token");
-        }
+        await liveService.registerConnection(userId, ws);
       },
       async onMessage(evt, ws) {
         if (userId === null) return;
@@ -44,9 +47,7 @@ liveRouter.get(
             await liveService.handleUpdatePresence(userId, payload);
           }
         } catch (e) {
-          const message = e instanceof LiveRateLimitServiceError || e instanceof LiveValidationServiceError
-            ? e.message
-            : "Invalid message";
+          const message = e instanceof LiveRateLimitServiceError || e instanceof LiveValidationServiceError ? e.message : "Invalid message";
           ws.send(JSON.stringify({ type: "error", payload: { message }, timestamp: new Date().toISOString() }));
         }
       },
