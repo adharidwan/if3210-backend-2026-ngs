@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const CreateFamilyRequestDto = z.object({
   name: z.string().trim().min(1).max(255),
-  iconUrl: z.string().url().max(255),
+  iconUrl: z.string().trim().min(1).max(255),
 });
 
 export const JoinFamilyRequestDto = z.object({

@@ -7,7 +7,7 @@ import {
   InvalidFamilyIconServiceError,
   FamilyCodeGenerationFailedServiceError,
 } from "./family.error";
-import { ALLOWED_FAMILY_ICON_URLS } from "../../shared/config/family-icons";
+import { normalizeFamilyIconUrl } from "../../shared/config/family-icons";
 
 // --- Blur helpers ---
 
@@ -36,13 +36,13 @@ function generateCode(): string {
 // --- Service methods ---
 
 export async function createFamily(userId: number, name: string, iconUrl: string) {
-  if (!ALLOWED_FAMILY_ICON_URLS.includes(iconUrl)) throw new InvalidFamilyIconServiceError();
+  const normalizedIconUrl = normalizeFamilyIconUrl(iconUrl);
+  if (!normalizedIconUrl) throw new InvalidFamilyIconServiceError();
 
-  let familyCode: string | null = null;
   for (let i = 0; i < 10; i++) {
     const candidate = generateCode();
     try {
-      const family = await repo.createFamilyTx(userId, name, iconUrl, candidate);
+      const family = await repo.createFamilyTx(userId, name, normalizedIconUrl, candidate);
       const members = await repo.listFamilyMembers(family.id);
       return {
         id: family.id,
