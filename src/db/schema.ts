@@ -51,3 +51,23 @@ export const familyMemberships = pgTable(
     index("idx_family_memberships_family_id").on(t.familyId),
   ]
 );
+
+export const livestreamSessions = pgTable(
+  "livestream_sessions",
+  {
+    streamId: varchar("stream_id", { length: 64 }).primaryKey(),
+    familyId: integer("family_id")
+      .notNull()
+      .references(() => families.id, { onDelete: "cascade" }),
+    hostUserId: integer("host_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    hostDisplayName: varchar("host_display_name", { length: 255 }).notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    stoppedAt: timestamp("stopped_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("idx_livestream_sessions_family_id_started_at").on(t.familyId, t.startedAt.desc()),
+    index("idx_livestream_sessions_family_id").on(t.familyId),
+  ]
+);

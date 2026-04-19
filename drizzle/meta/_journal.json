@@ -15,6 +15,13 @@
       "when": 1773689223086,
       "tag": "0001_seed_users",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773689223087,
+      "tag": "0002_livestream_sessions",
+      "breakpoints": true
     }
   ]
 }

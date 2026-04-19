@@ -1,7 +1,7 @@
 import { sign, verify } from "hono/jwt";
 import type { JWTPayload } from "hono/utils/jwt/types";
 
-const secret = process.env.JWT_SECRET || "super-secret-key-change-in-production";
+const secret = process.env.JWT_SECRET || process.env.APP_JWT_SECRET || "super-secret-key-change-in-production";
 
 function parseExpiresIn(val: string): number {
   const match = val.match(/^(\d+)([smhd])$/);
